@@ -22,6 +22,9 @@ function App() {
   }, []);
   return (
     <div id="canvas-container">
+      <div id="myinfo">
+        <a href="https://thinhcorner.com/">My info</a>
+      </div>
       <Loader />
       <Canvas>
         <Suspense fallback={null}>
@@ -99,7 +102,7 @@ function Water() {
   return (
     <>
       {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
-        Array.from({ length: 30 }).map((_, i) => (
+        Array.from({ length: 40 }).map((_, i) => (
           <RigidBody
             position={[e, 2 + 0.1 * i, -0.3]}
             key={`${e}-${i}`}
@@ -111,7 +114,7 @@ function Water() {
         ))
       )}
       {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
-        Array.from({ length: 30 }).map((_, i) => (
+        Array.from({ length: 40 }).map((_, i) => (
           <RigidBody
             position={[e, 4 + 0.1 * i, -1.3]}
             key={`${e}-${i}`}
