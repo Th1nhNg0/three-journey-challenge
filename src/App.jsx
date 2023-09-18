@@ -1,17 +1,17 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
-import {
-  Box,
-  Line,
-  OrbitControls,
-  Plane,
-  Sky,
-  Sphere,
-  Stats,
-} from "@react-three/drei";
+import { Box, Gltf, Line, OrbitControls, Sky, Stats } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Physics, RigidBody } from "@react-three/rapier";
-import { Suspense, useRef } from "react";
+import {
+  CuboidCollider,
+  CylinderCollider,
+  Physics,
+  RigidBody,
+} from "@react-three/rapier";
+import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
+import useSound from "use-sound";
+import legoSfx from "./lego-piece-pressed-105360.mp3";
 
 function App() {
   return (
@@ -19,72 +19,42 @@ function App() {
       <Canvas>
         <Suspense>
           <Stats />
-          <Sky />
-
-          <OrbitControls makeDefault />
-          <Physics debug>
+          <Sky sunPosition={[0, 1, 0]} />
+          <ambientLight />
+          <OrbitControls makeDefault minDistance={1} maxDistance={5} />
+          <Gltf
+            src="/untitled.gltf"
+            scale={0.31}
+            position={[-0.47, 0, -0.3]}
+            castShadow
+            receiveShadow
+          />
+          <Physics>
+            <Wall />
+            <Water />
+            <PlaySound />
             <Track
-              start={new THREE.Vector3(-1, 0, 0)}
-              end={new THREE.Vector3(2, 2, 0)}
+              start={new THREE.Vector3(-3.5, 0.1, 0.6)}
+              end={new THREE.Vector3(2.7, 0.1, 0.6)}
+              speed={2}
+            />
+            <Track
+              start={new THREE.Vector3(3, -0.4, 0.8)}
+              end={new THREE.Vector3(3, 1.3, -1.1)}
               support
+              speed={6}
             />
             <Track
-              start={new THREE.Vector3(2.3, 1.6, -0.7)}
-              end={new THREE.Vector3(2.3, 1.45, 3)}
+              start={new THREE.Vector3(3.3, 0.8, -1.3)}
+              end={new THREE.Vector3(-2.8, 1.5, -1.3)}
+              support
+              speed={2}
             />
-            <RigidBody
-              position={[0, 1.5, 0.25]}
-              type="fixed"
-              rotation={[0, Math.PI / 2, 0]}
-            >
-              <Box args={[0.1, 3, 3]} />
-            </RigidBody>
-            <RigidBody position={[2, 0.4, 0]} type="fixed" rotation={[0, 0, 0]}>
-              <Box args={[0.1, 3, 7]} opacity="0" />
-            </RigidBody>
-            <RigidBody
-              position={[2.5, 0.4, 0]}
-              type="fixed"
-              rotation={[0, 0, 0]}
-            >
-              <Box args={[0.1, 3, 7]} opacity="0" />
-            </RigidBody>
-            <RigidBody
-              position={[-1, 1.5, 0]}
-              type="fixed"
-              rotation={[0, 0, 0]}
-            >
-              <Box args={[0.1, 3, 3]} opacity="0" />
-            </RigidBody>
-            <RigidBody
-              position={[0, 1.5, -0.25]}
-              type="fixed"
-              rotation={[0, Math.PI / 2, 0]}
-            >
-              <Box args={[0.1, 3, 3]} />
-            </RigidBody>
-            {Array.from({ length: 50 }).map((e, i) => (
-              <RigidBody
-                position={[0, 3 + i * 0.1, 0]}
-                key={i}
-                colliders="ball"
-              >
-                <Sphere material-color="blue" args={[0.05]} />
-              </RigidBody>
-            ))}
-
-            {Array.from({ length: 50 }).map((e, i) => (
-              <RigidBody position={[0.2, 3 + i * 0.1, 0]} key={i}>
-                <Box material-color="blue" args={[0.1, 0.1, 0.1]} />
-              </RigidBody>
-            ))}
-            <RigidBody position={[0, 0, 0]}>
-              <Plane
-                material-color="gray"
-                args={[20, 20]}
-                rotation={[-Math.PI / 2, 0, 0]}
-              />
-            </RigidBody>
+            <Track
+              start={new THREE.Vector3(-3.1, 1.37, -1.6)}
+              end={new THREE.Vector3(-3.1, 1.37, -0.6)}
+              speed={10}
+            />
           </Physics>
         </Suspense>
       </Canvas>
@@ -92,7 +62,116 @@ function App() {
   );
 }
 
-function Item({ delay, index, pointPaths, angle, support }) {
+function PlaySound() {
+  const [play] = useSound(legoSfx);
+  return (
+    <CuboidCollider
+      position={[-3, 0.6, 0.3]}
+      args={[0.3, 0.1, 0.3]}
+      sensor
+      rotation={[0, Math.PI / 2, 0]}
+      onIntersectionEnter={play}
+    />
+  );
+}
+
+function Water() {
+  // cylinder geometry
+  const geom = useMemo(
+    () => new THREE.CylinderGeometry(0.05, 0.05, 0.1, 16),
+    []
+  );
+  const mat = useMemo(
+    () =>
+      new THREE.MeshPhongMaterial({
+        color: 0x0000ff,
+        transparent: true,
+        opacity: 0.5,
+      }),
+    []
+  );
+  return (
+    <>
+      {[-0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, 0.1, 0.2].map((e) =>
+        Array.from({ length: 40 }).map((_, i) => (
+          <RigidBody
+            position={[e, 2 + 0.1 * i, -0.3]}
+            key={`${e}-${i}`}
+            colliders={false}
+          >
+            <mesh geometry={geom} material={mat} />
+
+            <CylinderCollider args={[0.05, 0.05, 0.1]} />
+          </RigidBody>
+        ))
+      )}
+    </>
+  );
+}
+
+function Wall() {
+  return (
+    <>
+      <CuboidCollider
+        position={[-2.8, 1.37, -0.6]}
+        args={[0.05, 0.4, 0.3]}
+        rotation={[0, 0, 0]}
+      />
+      <CuboidCollider
+        position={[3, 1, -1]}
+        args={[0.05, 0.1, 0.5]}
+        rotation={[0, Math.PI / 2, 0]}
+      />
+      <RigidBody position={[3.3, -0.05, 0.8]} type="fixed">
+        <Box args={[0.1, 1.5, 1]} material-color="white" />
+      </RigidBody>
+      <RigidBody position={[2.7, -0.4, 0.8]} type="fixed">
+        <Box args={[0.1, 0.8, 1]} material-color="white" />
+      </RigidBody>
+      <RigidBody position={[3, -0.1, 1]} rotation={[-1.1, 0, 0]} type="fixed">
+        <Box args={[0.7, 0.1, 1.5]} material-color="white" />
+      </RigidBody>
+
+      <CuboidCollider
+        position={[3.3, 0.5, 0]}
+        args={[0.05, 1, 1.5]}
+        rotation={[Math.PI / 4, 0, 0]}
+      />
+      <CuboidCollider
+        position={[2.7, 1, 0 - 0.2]}
+        args={[0.05, 0.5, 0.8]}
+        rotation={[Math.PI / 4, 0, 0]}
+      />
+      <CuboidCollider
+        position={[0, 0.8, -1.6]}
+        args={[0.05, 1, 3.5]}
+        rotation={[0, Math.PI / 2, 0]}
+      />
+      <CuboidCollider
+        position={[-0.1, 0.8, -1]}
+        args={[0.05, 1, 2.8]}
+        rotation={[0, Math.PI / 2, 0]}
+      />
+      <CuboidCollider
+        position={[-0.5, 0.7, -0.11]}
+        args={[0.05, 0.8, 3.2]}
+        rotation={[-Math.PI / 5, Math.PI / 2, 0]}
+      />
+      <CuboidCollider
+        position={[-3.4, 1, 0]}
+        args={[0.05, 1, 1.5]}
+        rotation={[0, 0, 0]}
+      />
+      <CuboidCollider
+        position={[-0.3, 0.85, 0.9]}
+        args={[0.05, 1, 3]}
+        rotation={[0, Math.PI / 2, 0]}
+      />
+    </>
+  );
+}
+
+function Item({ delay, index, pointPaths, angle, support, speed }) {
   const rigidBody = useRef(null);
   let t = delay;
 
@@ -107,20 +186,30 @@ function Item({ delay, index, pointPaths, angle, support }) {
     rigidBody.current.setRotation(
       new THREE.Quaternion().setFromAxisAngle(axis, radians)
     );
-    t += 0.0002;
+    t += 0.0002 * speed;
     if (t > 1) {
       t = 0;
     }
   });
 
   return (
-    <RigidBody ref={rigidBody} colliders={"hull"} type="kinematicPosition">
-      <Box args={[0.5, 0.2, 0.05]} rotation={[0, angle, 0]} />
+    <RigidBody
+      ref={rigidBody}
+      colliders={"hull"}
+      type="kinematicPosition"
+      name="water"
+    >
+      <Box
+        args={[0.5, 0.2, 0.05]}
+        rotation={[0, angle, 0]}
+        material-color="gray"
+      />
       {support && index % 2 == 0 && (
         <Box
           args={[0.5, 0.05, 0.1]}
-          position={[-0.03, 0, 0]}
+          position={[0.0, 0, 0.05]}
           rotation={[0, angle, 0]}
+          material-color="gray"
         />
       )}
     </RigidBody>
@@ -135,7 +224,7 @@ const MyLine = ({ pointPaths }) => {
   return <Line points={points} />;
 };
 
-function Track({ start, end, support = false }) {
+function Track({ start, end, support = false, speed = 1 }) {
   const pointPaths = new THREE.CurvePath();
   const curve = new THREE.CatmullRomCurve3([
     start,
@@ -160,6 +249,7 @@ function Track({ start, end, support = false }) {
           pointPaths={pointPaths}
           angle={angle}
           support={support}
+          speed={speed}
         />
       ))}
     </>
