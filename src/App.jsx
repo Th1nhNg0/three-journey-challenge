@@ -12,7 +12,7 @@ import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 import useSound from "use-sound";
 import legoSfx from "./lego-piece-pressed-105360.mp3";
-import bgSfx from "./A Lonely Cherry Tree .mp3";
+import bgSfx from "./bg.mp3";
 import { useEffect } from "react";
 
 function App() {
