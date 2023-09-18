@@ -1,0 +1,8 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+#canvas-container {
+  height: 100svh;
+  width: 100svw;
+}
