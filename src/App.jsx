@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
-import { Box, Gltf, Line, OrbitControls, Sky, Stats } from "@react-three/drei";
+import { Box, Gltf, Line, Loader, OrbitControls, Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   CuboidCollider,
@@ -12,13 +12,19 @@ import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 import useSound from "use-sound";
 import legoSfx from "./lego-piece-pressed-105360.mp3";
+import bgSfx from "./A Lonely Cherry Tree .mp3";
+import { useEffect } from "react";
 
 function App() {
+  const [play] = useSound(bgSfx);
+  useEffect(() => {
+    play();
+  }, []);
   return (
     <div id="canvas-container">
+      <Loader />
       <Canvas>
-        <Suspense>
-          <Stats />
+        <Suspense fallback={null}>
           <Sky sunPosition={[0, 1, 0]} />
           <ambientLight />
           <OrbitControls makeDefault minDistance={1} maxDistance={5} />
@@ -92,15 +98,26 @@ function Water() {
   );
   return (
     <>
-      {[-0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, 0.1, 0.2].map((e) =>
-        Array.from({ length: 40 }).map((_, i) => (
+      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
+        Array.from({ length: 30 }).map((_, i) => (
           <RigidBody
             position={[e, 2 + 0.1 * i, -0.3]}
             key={`${e}-${i}`}
             colliders={false}
           >
             <mesh geometry={geom} material={mat} />
-
+            <CylinderCollider args={[0.05, 0.05, 0.1]} />
+          </RigidBody>
+        ))
+      )}
+      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
+        Array.from({ length: 30 }).map((_, i) => (
+          <RigidBody
+            position={[e, 4 + 0.1 * i, -1.3]}
+            key={`${e}-${i}`}
+            colliders={false}
+          >
+            <mesh geometry={geom} material={mat} />
             <CylinderCollider args={[0.05, 0.05, 0.1]} />
           </RigidBody>
         ))
