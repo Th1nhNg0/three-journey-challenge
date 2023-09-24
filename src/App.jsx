@@ -101,7 +101,7 @@ function Water() {
   );
   return (
     <>
-      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
+      {[-0.1, -1.2, 0.4, ].map((e) =>
         Array.from({ length: 40 }).map((_, i) => (
           <RigidBody
             position={[e, 2 + 0.1 * i, -0.3]}
@@ -113,7 +113,7 @@ function Water() {
           </RigidBody>
         ))
       )}
-      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
+      {[-0.1, -1.2, 0.4,].map((e) =>
         Array.from({ length: 40 }).map((_, i) => (
           <RigidBody
             position={[e, 4 + 0.1 * i, -1.3]}
