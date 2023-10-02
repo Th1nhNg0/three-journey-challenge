@@ -4,7 +4,7 @@ import { Box, Gltf, Line, Loader, OrbitControls, Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   CuboidCollider,
-  CylinderCollider,
+  InstancedRigidBodies,
   Physics,
   RigidBody,
 } from "@react-three/rapier";
@@ -12,14 +12,8 @@ import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 import useSound from "use-sound";
 import legoSfx from "./lego-piece-pressed-105360.mp3";
-import bgSfx from "./bg.mp3";
-import { useEffect } from "react";
 
 function App() {
-  const [play] = useSound(bgSfx);
-  useEffect(() => {
-    play();
-  }, []);
   return (
     <div id="canvas-container">
       <div id="myinfo">
@@ -28,7 +22,7 @@ function App() {
       <Loader />
       <Canvas>
         <Suspense fallback={null}>
-          <Sky sunPosition={[0, 1, 0]} />
+          <Sky />
           <ambientLight />
           <OrbitControls makeDefault minDistance={1} maxDistance={5} />
           <Gltf
@@ -85,7 +79,21 @@ function PlaySound() {
 }
 
 function Water() {
-  // cylinder geometry
+  const COUNT = 300;
+  const rigidBodies = useRef(null);
+
+  const instances = useMemo(() => {
+    const instances = [];
+    for (let z = 0; z < 5; z++)
+      for (let i = 0; i < 60; i++) {
+        instances.push({
+          position: [-3.3 + i * 0.1, 2, 0.4 + z * 0.1],
+          rotation: [0, 0, 0],
+          key: `water_${z}_${i}`,
+        });
+      }
+    return instances;
+  }, []);
   const geom = useMemo(
     () => new THREE.CylinderGeometry(0.05, 0.05, 0.1, 16),
     []
@@ -99,33 +107,17 @@ function Water() {
       }),
     []
   );
+
   return (
-    <>
-      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
-        Array.from({ length: 40 }).map((_, i) => (
-          <RigidBody
-            position={[e, 2 + 0.1 * i, -0.3]}
-            key={`${e}-${i}`}
-            colliders={false}
-          >
-            <mesh geometry={geom} material={mat} />
-            <CylinderCollider args={[0.05, 0.05, 0.1]} />
-          </RigidBody>
-        ))
-      )}
-      {[-0.1, -1.2, 0.4, 1.2, 2].map((e) =>
-        Array.from({ length: 40 }).map((_, i) => (
-          <RigidBody
-            position={[e, 4 + 0.1 * i, -1.3]}
-            key={`${e}-${i}`}
-            colliders={false}
-          >
-            <mesh geometry={geom} material={mat} />
-            <CylinderCollider args={[0.05, 0.05, 0.1]} />
-          </RigidBody>
-        ))
-      )}
-    </>
+    <group>
+      <InstancedRigidBodies
+        ref={rigidBodies}
+        instances={instances}
+        colliders="hull"
+      >
+        <instancedMesh args={[geom, mat, COUNT]} castShadow count={COUNT} />
+      </InstancedRigidBodies>
+    </group>
   );
 }
 
